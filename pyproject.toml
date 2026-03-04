@@ -1,0 +1,9 @@
+[project]
+name = "echoagent"
+version = "0.1"
+description = "echoagent agent"
+readme = "README.md"
+dependencies = [
+  "google-adk==1.25.1",
+]
+requires-python = ">=3.13"
