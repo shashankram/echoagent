@@ -25,12 +25,4 @@ services:
       - type: bind
         source: ./echoagent
         target: /config
-  shashank-echomcp:
-    image: docker.io/shashankram/echomcp:0.1.0
-    expose:
-      - "3000"
-    environment:
-      - MCP_TRANSPORT_MODE=http
-      - HOST=0.0.0.0
-      - MCP_STATELESS_HTTP=true
 
