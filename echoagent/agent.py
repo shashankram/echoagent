@@ -5,6 +5,7 @@ from google.adk import Agent
 from google.adk.tools.tool_context import ToolContext
 from google.adk.tools.mcp_tool import McpToolset
 from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
+from kagent.adk.models._openai import BaseOpenAI
 
 # Initialize OpenTelemetry
 # Set service name from environment variable for OpenTelemetry
@@ -13,6 +14,8 @@ os.environ.setdefault("OTEL_SERVICE_NAME", "echoagent")
 from google.adk.telemetry.setup import maybe_set_otel_providers
 
 maybe_set_otel_providers()
+
+GATEWAY_HOST = os.environ.get("GATEWAY_HOST", "localhost")
 
 
 def roll_die(sides: int, tool_context: ToolContext) -> int:
@@ -52,7 +55,11 @@ def create_model():
 
 
 root_agent = Agent(
-    model=create_model(),
+    model=BaseOpenAI(
+        model="gpt-4",
+        base_url=f"http://{GATEWAY_HOST}",
+        api_key="fake",
+    ),
     name="echoagent_agent",
     description="echoagent agent.",
     instruction="""
@@ -63,7 +70,7 @@ Concisely answer the questions asked.
         check_prime,
         McpToolset(
             connection_params=StreamableHTTPConnectionParams(
-                url="http://34.61.30.91/mcp",
+                url=f"http://{GATEWAY_HOST}/mcp",
             ),
         ),
     ],
