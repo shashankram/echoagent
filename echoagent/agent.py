@@ -3,19 +3,18 @@ import os
 
 from google.adk import Agent
 from google.adk.tools.tool_context import ToolContext
-from google.adk.tools.mcp_tool import McpToolset
-from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
+
 from kagent.adk.models._openai import BaseOpenAI
+
+from .mcp_tools import get_mcp_tools
+from .prompts_loader import build_instruction
 
 # Initialize OpenTelemetry
 # Set service name from environment variable for OpenTelemetry
-os.environ.setdefault("OTEL_SERVICE_NAME", "echoagent")
+os.environ.setdefault('OTEL_SERVICE_NAME', 'echoagent')
 
 from google.adk.telemetry.setup import maybe_set_otel_providers
-
 maybe_set_otel_providers()
-
-GATEWAY_HOST = os.environ.get("GATEWAY_HOST", "localhost")
 
 
 def roll_die(sides: int, tool_context: ToolContext) -> int:
@@ -42,36 +41,47 @@ async def check_prime(nums: list[int]) -> str:
                 break
         if is_prime:
             primes.add(number)
-    return (
-        "No prime numbers found."
-        if not primes
-        else f"{', '.join(str(num) for num in primes)} are prime numbers."
-    )
+    return "No prime numbers found." if not primes else f"{', '.join(str(num) for num in primes)} are prime numbers."
+
 
 
 def create_model():
-    """Use a Gemini model."""
-    return "gemini-2.0-flash"
+    """Use a model via Agentgateway."""
+    return BaseOpenAI(
+        model="gpt-4o-mini", # Can be configured at the Gateway
+        base_url=os.environ.get("GATEWAY_API_BASE_URL", "http://localhost"),
+        api_key=os.environ.get("GATEWAY_API_KEY", "placeholder"), # Can be configured at the Gateway
+    )
 
 
+
+mcp_tools = get_mcp_tools()
 root_agent = Agent(
-    model=BaseOpenAI(
-        model="gpt-4",
-        base_url=f"http://{GATEWAY_HOST}/v1",  # requires /v1
-        api_key="fake",
-    ),
+    model=create_model(),
     name="echoagent_agent",
     description="echoagent agent.",
-    instruction="""
-Concisely answer the questions asked.
-    """,
+    instruction=build_instruction("""
+You roll dice and answer questions about the outcome of the dice rolls.
+You can roll dice of different sizes.
+You can use multiple tools in parallel by calling functions in parallel (in one request and in one round).
+It is ok to discuss previous dice roles, and comment on the dice rolls.
+When you are asked to roll a die, you must call the roll_die tool with the number of sides. Be sure to pass in an integer. Do not pass in a string.
+You should never roll a die on your own.
+When checking prime numbers, call the check_prime tool with a list of integers. Be sure to pass in a list of integers. You should never pass in a string.
+You should not check prime numbers before calling the tool.
+When you are asked to roll a die and check prime numbers, you should always make the following two function calls:
+1. You should first call the roll_die tool to get a roll. Wait for the function response before calling the check_prime tool.
+2. After you get the function response from roll_die tool, you should call the check_prime tool with the roll_die result.
+2.1 If user asks you to check primes based on previous rolls, make sure you include the previous rolls in the list.
+3. When you respond, you must include the roll_die result from step 1.
+You should always perform the previous 3 steps when asking for a roll and checking prime numbers.
+You should not rely on the previous history on prime results.
+
+
+    """),
     tools=[
         roll_die,
         check_prime,
-        McpToolset(
-            connection_params=StreamableHTTPConnectionParams(
-                url=f"http://{GATEWAY_HOST}/mcp",
-            ),
-        ),
-    ],
+    ] + (mcp_tools if mcp_tools else []),
 )
+

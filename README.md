@@ -5,8 +5,8 @@ ADK Python agent wired for MCP tools and ready to publish through AgentRegistry.
 
 ## Model configuration
 
-- Provider: **gemini**
-- Model: **gemini-2.0-flash**
+- Provider: **agentgateway**
+- Model: **gpt-4o-mini**
 
 Update `echoagent/agent.py` if you need to switch providers, add tools, or
 change the root instructions.

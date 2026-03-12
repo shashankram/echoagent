@@ -5,5 +5,6 @@ description = "echoagent agent"
 readme = "README.md"
 dependencies = [
   "google-adk==1.25.1",
+  "kagent-adk==0.8.0b6",
 ]
 requires-python = ">=3.13"

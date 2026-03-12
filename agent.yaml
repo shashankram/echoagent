@@ -2,11 +2,11 @@ agentName: echoagent
 image: docker.io/shashankram/echoagent:0.0.1
 language: python
 framework: adk
-modelProvider: gemini
-modelName: gemini-2.0-flash
+modelProvider: agentgateway
+modelName: gpt-4o-mini
 description: ""
 mcpServers:
     - type: remote
       name: test-mcp
-      url: http://34.61.30.91/mcp
-updatedAt: 2026-03-06T13:16:27.467033016-08:00
+      url: http://${GATEWAY_HOST}/mcp
+updatedAt: 2026-03-12T16:22:21.609573485-07:00

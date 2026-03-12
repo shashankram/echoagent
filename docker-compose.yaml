@@ -18,11 +18,9 @@ services:
       - AGENT_NAME=echoagent
       - OTEL_SERVICE_NAME=echoagent
       - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT}
-      - MODEL_PROVIDER=gemini
-      - MODEL_NAME=gemini-2.0-flash
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - MODEL_PROVIDER=agentgateway
+      - MODEL_NAME=gpt-4o-mini
     volumes:
       - type: bind
         source: ./echoagent
         target: /config
-
